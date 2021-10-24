@@ -7,6 +7,9 @@ export const store = configureStore({
         theme: themeReducer,
         generalModal: generalModalReducer
     },
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware({
+        serializableCheck: false
+    })
 })
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

@@ -1,89 +1,97 @@
-import React, { useState } from "react";
 import {
 	Form,
 	Input,
 	Button,
-	Radio,
+	// Radio,
 	Select,
-	Cascader,
 	DatePicker,
 	InputNumber,
-	TreeSelect,
-	Switch,
+	Alert,
+	message,
 } from "antd";
-
-type SizeType = Parameters<typeof Form>[0]["size"];
+import { useMutation, useQuery } from "react-query";
+import { DocumentsApi, PopulationApi } from "../../services/Api";
+import { Documento, Documents } from "../../models/documento";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../app/store";
+import { cleanModalReducer, setModalState } from "../../redux/modalSlice";
 
 const PopulationForm = () => {
-	const [componentSize, setComponentSize] = useState<SizeType | "default">(
-		"default"
-	);
-	const onFormLayoutChange = ({ size }: { size: SizeType }) => {
-		setComponentSize(size);
-	};
+
+	const { data, isSuccess } = useQuery<Documents>('documentList', DocumentsApi.getDocuments)
+	const { isLoading, isError, mutate } = useMutation(PopulationApi.createPerson, {
+		onMutate: () => {
+			showMsj()
+		},
+		onSuccess: (data, variables, context) => {
+			showMsj()
+			console.log(data)
+			console.log(variables)
+			console.log(context)
+			dispatch(cleanModalReducer())
+		}
+	})
+
+	const dispatch = useDispatch();
+	const modalState = useSelector((state: RootState) => state.generalModal.modalState)
+
+	const handleSubmit = (val: any) => {
+		mutate(val)
+		dispatch(setModalState(!modalState))
+	}
+
+	const showMsj = () => 
+		isLoading 
+			? message.loading({ content: 'Loading...', key: 'key' })
+			: message.success({ content: 'Loaded!', key: 'key', duration: 2 })
+
 	return (
 		<>
+			{
+				isError && (
+					<Alert
+						message="Warning"
+						description="This is a warning notice about copywriting."
+						type="warning"
+						showIcon
+						closable
+					/>
+				)
+			}
 			<Form
-				labelCol={{ span: 4 }}
+				labelCol={{ span: 8 }}
 				wrapperCol={{ span: 14 }}
 				layout="horizontal"
-				initialValues={{ size: componentSize }}
-				onValuesChange={onFormLayoutChange}
-				size={componentSize as SizeType}
+				onFinish={handleSubmit}
 			>
-				{/* <Form.Item label="Form Size" name="size">
-					<Radio.Group>
-						<Radio.Button value="small">Small</Radio.Button>
-						<Radio.Button value="default">Default</Radio.Button>
-						<Radio.Button value="large">Large</Radio.Button>
-					</Radio.Group>
-				</Form.Item> */}
-				<Form.Item label="Input">
+				<Form.Item name="nombres" label="Nombres">
 					<Input />
 				</Form.Item>
-				<Form.Item label="Select">
+				<Form.Item name="apellidos" label="Apellidos">
+					<Input />
+				</Form.Item>
+				<Form.Item name="documento_id" label="Documento">
 					<Select>
-						<Select.Option value="demo">Demo</Select.Option>
+						{
+							isSuccess && data?.documentos.map((document: Documento) => (
+								<Select.Option
+									key={document.id}
+									value={document.id}
+								>
+									{ document.name }
+								</Select.Option> 
+							))
+						}
 					</Select>
 				</Form.Item>
-				<Form.Item label="TreeSelect">
-					<TreeSelect
-						treeData={[
-							{
-								title: "Light",
-								value: "light",
-								children: [{ title: "Bamboo", value: "bamboo" }],
-							},
-						]}
-					/>
-				</Form.Item>
-				<Form.Item label="Cascader">
-					<Cascader
-						options={[
-							{
-								value: "zhejiang",
-								label: "Zhejiang",
-								children: [
-									{
-										value: "hangzhou",
-										label: "Hangzhou",
-									},
-								],
-							},
-						]}
-					/>
-				</Form.Item>
-				<Form.Item label="DatePicker">
-					<DatePicker />
-				</Form.Item>
-				<Form.Item label="InputNumber">
+				<Form.Item name="numero_documento" label="Numero">
 					<InputNumber />
 				</Form.Item>
-				<Form.Item label="Switch" valuePropName="checked">
-					<Switch />
+				<Form.Item name="fecha_nacimiento" label="Fecha de nacimiento">
+					<DatePicker />
 				</Form.Item>
-				<Form.Item label="Button">
-					<Button>Button</Button>
+				<Form.Item wrapperCol={{ offset: 8, span: 16 }}>
+					<Button type="primary" htmlType="submit">Crear comunero</Button>
 				</Form.Item>
 			</Form>
 		</>

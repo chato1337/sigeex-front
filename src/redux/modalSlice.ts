@@ -4,14 +4,14 @@ export interface GeneralModalState {
     modalTitle: string,
     modalState: boolean,
     renderContent: any,
-    actionCallback: () => void,
+    actionCallback: any,
 }
 
 const initialState: GeneralModalState = {
     modalTitle: "empty",
     modalState: false,
-    renderContent: () => null,
-    actionCallback: () => null
+    renderContent: null,
+    actionCallback: null
 }
 
 export const generalModalSlice = createSlice({
@@ -29,10 +29,16 @@ export const generalModalSlice = createSlice({
         },
         setActionCallback: (state, action: PayloadAction<any>) => {
             state.actionCallback = action.payload
+        },
+        cleanModalReducer: (state) => {
+            state.modalTitle = "title"
+            // state.modalState = false
+            state.renderContent = null
+            state.actionCallback = null
         }
     }
 })
 
-export const { setModalTitle, setModalState, setRenderContent, setActionCallback } = generalModalSlice.actions
+export const { setModalTitle, setModalState, setRenderContent, setActionCallback, cleanModalReducer } = generalModalSlice.actions
 
 export default generalModalSlice.reducer
